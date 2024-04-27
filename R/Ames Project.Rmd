@@ -1,0 +1,36 @@
+---
+title: "Ames Project"
+author: "Daniel Immediato"
+date: "2024-04-20"
+output: html_document
+---
+
+```{r}
+#libraries
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(caret)
+library(randomForest)
+library(varImp)
+setwd("~/NYCDSA/Third Project/ML_Ames_Housing/R")
+Ames_Housing = read.csv("~/NYCDSA/Third Project/ML_Ames_Housing/data/Ames_Housing_Price_Data.csv", header= TRUE)
+Ames_Housing = select(Ames_Housing, -X) #We know that PID will be used as the identification for each of the housing units. An actual number is not needed.
+```
+
+```{r}
+Ames_Housing = Ames_Housing %>% mutate_at(c('PID', 'MSSubClass', 'OverallQual', 'OverallCond', 'BsmtFullBath', "BsmtHalfBath", "FullBath", "HalfBath", "BedroomAbvGr", "KitchenAbvGr", "Fireplaces", "GarageCars"), as.factor)
+#Convert non-integers to factors. Room numbers were questionable since they technically "increase" as a number, but can also be a category in regards to a house (EG 2 bedroom, 2 Fullbaths). Total was not included since that is an actual accumulation. 
+Ames_Housing
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+lm1 = lm(SalePrice ~., data = Ames_Housing)
+summary(lm1)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
