@@ -71,6 +71,8 @@ summary(lm1)$adj.r.squared
 ```
 ```{r}
 regressor <- randomForest(SalePrice ~ . -PID -YrSold -GarageYrBlt -TotalBsmtSF -LowQualFinSF -MoSold -YearBuilt -YearRemodAdd, data = Ames_Housing, importance=TRUE)
-importance(regressor)
+res = importance(regressor)
+res = res[order(res[,1],decreasing=TRUE),drop=FALSE,]
+res
 ```
 
