@@ -1,0 +1,89 @@
+---
+title: "Ames_TimeSeries"
+author: "Daniel Immediato"
+date: "2024-05-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tsdl)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(datasets)
+library(forecast)
+library(astsa)
+
+#Ames_Housing$YrSold <- as.Date(Ames_Housing$YrMoSold, format = "%Y%m%d:t")
+#Ames_Housing$YrSold <- year(Ames_Housing$YrSold)
+#Ames_Housing_Refined$GarageYrBlt <- as.Date(Ames_Housing_Refined$GarageYrBlt, format = "%Y")
+#Ames_Housing_Refined$GarageYrBlt <- year(Ames_Housing_Refined$GarageYrBlt)
+#Ames_Housing$MoSold <- as.Date(as.character(Ames_Housing$MoSold), format = "%m")
+#Ames_Housing$MoSold <- year(Ames_Housing$MoSold)
+#Ames_Housing_Refined$YearBuilt <- as.Date(as.character(Ames_Housing_Refined$YearBuilt), format = "%Y")
+#Ames_Housing_Refined$YearBuilt <- year(Ames_Housing_Refined$YearBuilt)
+#Ames_Housing_Refined$YearRemodAdd <- as.Date(Ames_Housing_Refined$YearRemodAdd, format = "%Y")
+#Ames_Housing_Refined$YearRemodAdd <- year(Ames_Housing_Refined$YearRemodAdd)
+
+```
+
+
+```{r pressure, echo=FALSE}
+
+library("xts")
+Ames_TS= data.frame(SalePrice = Ames_Housing$SalePrice, YearBuilt= Ames_Housing$YearBuilt)
+
+#Ames_TS <- Ames_TS[-which(Ames_TS$YearBuilt ==2009),]
+
+#Ames_TS <- Ames_TS[-which(Ames_TS$YearBuilt == 2010),]
+
+Ames_TS$YearBuilt <- as.Date(as.character(Ames_TS$YearBuilt), format = "%Y")
+
+ts <- Ames_TS %>%
+    mutate(month = month(YearBuilt), year= year(YearBuilt), label = TRUE) %>%
+    group_by(year) %>%
+    summarise(Total_Price = mean(SalePrice)) 
+
+ts$year <- as.Date(as.character(ts$year), format = "%Y")
+ts = xts(ts[,-1], order.by=as.Date(ts$year, format = "%Y%m%d"))
+
+log_ts = log(ts[,1]) #Non-stationary
+
+acf(log_ts)
+acf(log_ts, type = "partial")
+
+```
+
+
+```{r}
+mymodel <- Arima(ts, order = c(1,2,20))
+
+mymodel
+
+myforecast <- forecast(mymodel, level=c(95), h=10)
+options(scipen = 999)
+plot(myforecast, xaxt="n", main="Forecast of House Sale Prices Based on Year Built",
+        xlab="Year",
+        ylab="Sale Price (Average, In Dollars)", col = "darkgreen", lwd=2.5) 
+axis(1, at = c(1, 14, 28, 42, 56, 70, 84, 98, 112, 126),
+     labels = c("1872", '1904', '1921', '1936', '1950', '1964', '1978', '1992', '2008', '2020'))
+legend("topleft", legend=c("Sale Price", "Forecast"),
+       col=c("darkgreen", "blue"), lty=1, cex=1)
+```
+```{r}
+
+log_mymodel <- Arima(log_ts, order = c(1,2,20))
+
+log_mymodel
+
+log_myforecast <- forecast(log_mymodel, level=c(95), h=10)
+plot(log_myforecast, xaxt="n", main="Forecast of House Sale Prices Based on Year Built",
+        xlab="Year",
+        ylab="Sale Price (Average, Logarithmic)", col = "darkgreen", lwd=2.5) 
+axis(1, at = c(1, 14, 28, 42, 56, 70, 84, 98, 112, 126),
+     labels = c("1872", '1904', '1921', '1936', '1950', '1964', '1978', '1992', '2008', '2020'))
+legend("topleft", legend=c("Sale Price", "Forecast"),
+       col=c("darkgreen", "blue"), lty=1, cex=1)
+mtext(side=3, line=.5, at=-0.07, adj=-1, cex=0.7, "As Expressed in Terms of Logarithms")
+```
+
