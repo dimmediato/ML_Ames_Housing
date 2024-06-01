@@ -19,29 +19,29 @@ use_python("C:/Users/immed/Programming/Anaconda/python.exe",required = TRUE)
 pd <- import("pandas")
 setwd("~/NYCDSA/Third Project/ML_Ames_Housing/R")
 Ames_Housing = pd$read_pickle("C:/Users/immed/Documents/NYCDSA/Third Project/ML_Ames_Housing/Python/housing_numeric.pkl")
-Ames_Housing$YrSold <- as.Date(Ames_Housing$YrSold, format = "%Y")
-Ames_Housing$YrSold <- year(Ames_Housing$YrSold)
-Ames_Housing$GarageYrBlt <- as.Date(Ames_Housing$GarageYrBlt, format = "%Y")
-Ames_Housing$GarageYrBlt <- year(Ames_Housing$GarageYrBlt)
-Ames_Housing$MoSold <- as.Date(Ames_Housing$MoSold, format = "%Y")
-Ames_Housing$MoSold <- year(Ames_Housing$MoSold)
-Ames_Housing$YearBuilt <- as.Date(Ames_Housing$YearBuilt, format = "%Y")
-Ames_Housing$YearBuilt <- year(Ames_Housing$YearBuilt)
-Ames_Housing$YearRemodAdd <- as.Date(Ames_Housing$YearRemodAdd, format = "%Y")
-Ames_Housing$YearRemodAdd <- year(Ames_Housing$YearRemodAdd)
-colnames(Ames_Housing)[colnames(Ames_Housing) == '1stFlrSF'] = 'FirstFlrSF'
-colnames(Ames_Housing)[colnames(Ames_Housing) == '2ndFlrSF'] = 'SecondFlrSF'
-colnames(Ames_Housing)[colnames(Ames_Housing) == '3SsnPorch'] = 'ThreeSsnPorch'
+#Ames_Housing$YrSold <- as.Date(Ames_Housing$YrSold, format = "%Y")
+#Ames_Housing$YrSold <- year(Ames_Housing$YrSold)
+#Ames_Housing$GarageYrBlt <- as.Date(Ames_Housing$GarageYrBlt, format = "%Y")
+#Ames_Housing$GarageYrBlt <- year(Ames_Housing$GarageYrBlt)
+#Ames_Housing$MoSold <- as.Date(Ames_Housing$MoSold, format = "%Y")
+#Ames_Housing$MoSold <- year(Ames_Housing$MoSold)
+#Ames_Housing$YearBuilt <- as.Date(Ames_Housing$YearBuilt, format = "%Y")
+#Ames_Housing$YearBuilt <- year(Ames_Housing$YearBuilt)
+#Ames_Housing$YearRemodAdd <- as.Date(Ames_Housing$YearRemodAdd, format = "%Y")
+#Ames_Housing$YearRemodAdd <- year(Ames_Housing$YearRemodAdd)
+#colnames(Ames_Housing)[colnames(Ames_Housing) == '1stFlrSF'] = 'FirstFlrSF'
+#colnames(Ames_Housing)[colnames(Ames_Housing) == '2ndFlrSF'] = 'SecondFlrSF'
+#colnames(Ames_Housing)[colnames(Ames_Housing) == '3SsnPorch'] = 'ThreeSsnPorch'
 Ames_Housing
 ```
 
 ```{r}
-Ames_Housing <- Ames_Housing[!Ames_Housing$PID == "908154205",]
-Ames_Housing <- Ames_Housing[!Ames_Housing$PID == "528351010",]
-Ames_Housing <- Ames_Housing[!Ames_Housing$PID == "909176150",]
-Ames_Housing <- Ames_Housing[!Ames_Housing$PID == "533350090",]
-Ames_Housing <- Ames_Housing[!Ames_Housing$PID == "905476230",]
-lm1 = lm(SalePrice ~ . -PID -YrSold -GarageYrBlt -TotalBsmtSF -LowQualFinSF -MoSold -YearBuilt -YearRemodAdd, data = Ames_Housing)
+#Ames_Housing <- Ames_Housing[!Ames_Housing$PID == "908154205",]
+#Ames_Housing <- Ames_Housing[!Ames_Housing$PID == "528351010",]
+#Ames_Housing <- Ames_Housing[!Ames_Housing$PID == "909176150",]
+#Ames_Housing <- Ames_Housing[!Ames_Housing$PID == "533350090",]
+#Ames_Housing <- Ames_Housing[!Ames_Housing$PID == "905476230",]
+lm1 = lm(SalePrice ~ . -PID -YrSold -GarageYrBlt -MoSold -YearBuilt -YearRemodAdd, data = Ames_Housing)
 summary(lm1)
 ```
 
@@ -73,6 +73,215 @@ summary(lm1)$adj.r.squared
 regressor <- randomForest(SalePrice ~ . -PID -YrSold -GarageYrBlt -TotalBsmtSF -LowQualFinSF -MoSold -YearBuilt -YearRemodAdd, data = Ames_Housing, importance=TRUE)
 res = importance(regressor)
 res = res[order(res[,1],decreasing=TRUE),drop=FALSE,]
-res
+
 ```
+
+```{r}
+ggplot(data = Ames_Housing, aes(x = SalePrice)) +
+  geom_histogram(mapping = aes(x = SalePrice, y=..density..), fill="darkgreen",, colour="black", bins = 100) + xlim(0, 800000) + scale_x_continuous(labels = scales::label_dollar(), breaks = scales::pretty_breaks(n = 10)) + 
+  stat_function(fun = dnorm, 
+                args = list(mean = mean(Ames_Housing$SalePrice), 
+                            sd = sd(Ames_Housing$SalePrice)), aes(color = "red"), size=1) +
+  scale_color_manual(name = 'Distribution', 
+         values =c('red'='red'), labels = c('Mean of $178,059.60
+SD of 75031.09')) + 
+  labs(x = "Sale Price", y = 'Density') + ggtitle('Standard Distribution of Sale Prices') + theme(
+    legend.position = c(.95, .95),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right", plot.title = element_text(hjust = 0.5)
+    )
+
+```
+
+
+```{r}
+Ames_Housing_Refined = pd$read_pickle("C:/Users/immed/Documents/NYCDSA/Third Project/ML_Ames_Housing/Python/housing_refined.pkl")
+
+Ames_Housing_Refined["SalePrice"] = Ames_Housing["SalePrice"]
+
+ggplot(Ames_Housing_Refined, aes(x=TotalSF, y=SalePrice)) + 
+  geom_point(color='darkgreen')+
+  geom_smooth(aes(color='red')) + scale_y_continuous(labels = scales::label_dollar(), breaks=seq(0, 800000, 160000)) + 
+  labs(x = "Total Living Space in Square Feet", y = 'Sale Price') + ggtitle('Sale Price Regression on Total Square Feet') + 
+  scale_color_manual(name = 'Pearson\'s\ R', 
+         values =c('red'='red'), labels = c('Cor=0.82
+p-value < 2.2e-16')) + theme(legend.position = c(0.2,.85), plot.title = element_text(hjust = 0.5)
+    )
+```
+
+
+```{r}
+
+cor.test(Ames_Housing_Refined$TotalSF, Ames_Housing_Refined$SalePrice, method = c("pearson"))
+```
+
+```{r}
+Ames_Housing_Refined$TotalBath = round(Ames_Housing_Refined$TotalBath, digits = 1)
+Ames_Housing_Refined$TotalBath = as.numeric(Ames_Housing_Refined$TotalBath)
+ ggplot(Ames_Housing_Refined,aes(x=factor(TotalBath)))+
+  geom_bar(position="dodge", fill='steelblue') +
+  labs(x = "Total Number of Baths", y = 'Count') + ggtitle('The Four Bathroom Variables Combined') + theme(plot.title = element_text(hjust = 0.5)
+    )
+
+```
+```{r}
+ggplot(Ames_Housing_Refined, aes(TotalBath, SalePrice)) +
+  geom_point(color="steelblue") +
+  geom_smooth(method = lm, aes(color="red")) + scale_y_continuous(labels = scales::label_dollar(), breaks=seq(0, 800000, 160000)) + 
+  labs(x = "Total Number of Baths", y = 'Sale Price') + ggtitle('Sale Price Regression on Total Baths') + 
+  scale_color_manual(name = 'Pearson\'s\ R', 
+         values =c('red'='red'), labels = c('Cor=0.64
+p-value < 2.2e-16')) + theme(
+    legend.position = c(.95, .95),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right", plot.title = element_text(hjust = 0.5)
+    )
+```
+
+
+```{r}
+cor.test(Ames_Housing_Refined$TotalBath, Ames_Housing_Refined$SalePrice, method = c("pearson"))
+```
+
+
+```{r}
+#library("psych")
+#Ames_Housing_Refined = Ames_Housing_Refined %>% select(where(is.numeric))
+#corr.test(Ames_Housing_Refined, Ames_Housing_Refined$SalePrice, method="pearson")
+
+```
+```{r}
+ggplot(Ames_Housing_Refined, aes(x=GrLivArea, y=SalePrice)) + 
+  geom_point(color='darkblue')+
+  geom_smooth(aes(color='red')) + scale_y_continuous(labels = scales::label_dollar(), breaks=seq(0, 800000, 160000)) + 
+  labs(x = "Above Ground Living Area In Square Feet", y = 'Sale Price') + ggtitle('Sale Price Regression on Above Ground Living Area') + 
+  scale_color_manual(name = 'Pearson\'s\ R', 
+         values =c('red'='red'), labels = c('Cor=0.72
+p-value < 2.2e-16')) + theme(legend.position = c(0.2,.85), plot.title = element_text(hjust = 0.5)
+    )
+```
+```{r}
+cor.test(Ames_Housing_Refined$OverallCond, Ames_Housing_Refined$SalePrice, method = c("pearson"))
+```
+
+
+```{r}
+Ames_Housing_Refined$OverallQual  = factor(Ames_Housing_Refined$OverallQual, levels=c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))
+Ames_Housing_Refined$OverallQual =as.numeric(Ames_Housing_Refined$OverallQual)
+ggplot(Ames_Housing_Refined, aes(x=OverallQual, y=SalePrice)) + 
+  geom_point(color='skyblue')+
+  geom_smooth(aes(color='red')) + scale_y_continuous(labels = scales::label_dollar(), breaks=seq(0, 800000, 160000)) + scale_x_continuous(breaks=seq(1,10,1)) + 
+  labs(x = "Rates of the Overall Material and Finish of the House", y = 'Sale Price') + ggtitle('Sale Price Regression on Overall Quality') + 
+  scale_color_manual(name = 'Pearson\'s\ R', 
+         values =c('red'='red'), labels = c('Cor=0.79
+p-value < 2.2e-16')) + theme(legend.position = c(0.2,.85), plot.title = element_text(hjust = 0.5))
+```
+```{r}
+Ames_Housing_Refined$OverallCond  = factor(Ames_Housing_Refined$OverallCond, levels=c("1", "2", "3", "4", "5", "6", "7", "8", "9"))
+Ames_Housing_Refined$OverallCond =as.numeric(Ames_Housing_Refined$OverallCond)
+ggplot(Ames_Housing_Refined, aes(x=OverallCond, y=SalePrice)) + 
+  geom_point(color='skyblue')+
+  geom_smooth(method = "loess", aes(color='red')) + scale_y_continuous(labels = scales::label_dollar(), breaks=seq(0, 800000, 160000)) + scale_x_continuous(breaks=seq(1,10,1)) + 
+  labs(x = "Overall Condition of the House by Rating", y = 'Sale Price') + ggtitle('Sale Price Regression on Overall Condition') + 
+  scale_color_manual(name = 'Pearson\'s\ R', 
+         values =c('red'='red'), labels = c('Cor=-0.10
+p-value < 2.668e-07')) + theme(legend.position = c(0.2,.85), plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+
+ ggplot(data = Ames_Housing_Refined, aes(x = OverallQual)) +
+  geom_histogram(mapping = aes(x = OverallQual, y=..density..), fill="skyblue",, colour="black", bins = 10) + scale_x_continuous(breaks = seq(1,10,1)) + 
+  stat_function(fun = dnorm, 
+                args = list(mean = mean(Ames_Housing_Refined$OverallQual), 
+                            sd = sd(Ames_Housing_Refined$OverallQual)), aes(color = "red"), size=1) +
+  scale_color_manual(name = 'Distribution', 
+         values =c('red'='red'), labels = c('Mean of 6.04
+SD of 1.38')) + 
+  labs(x = "Rates of the Overall Material and Finish of the House", y = 'Density') + ggtitle('Standard Distribution of Overall Quality') + theme(
+    legend.position = c(.95, .95),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right", plot.title = element_text(hjust = 0.5)
+    )
+```
+
+```{r}
+ggplot(data = Ames_Housing_Refined, aes(x = OverallCond)) +
+  geom_histogram(mapping = aes(x = OverallCond, y=..density..), fill="skyblue",, colour="black", bins = 9) + scale_x_continuous(breaks = seq(1,9,1)) + 
+  stat_function(fun = dnorm, 
+                args = list(mean = mean(Ames_Housing_Refined$OverallCond), 
+                            sd = sd(Ames_Housing_Refined$OverallCond)), aes(color = "red"), size=1) +
+  scale_color_manual(name = 'Distribution', 
+         values =c('red'='red'), labels = c('Mean of 5.62
+SD of 1.12')) + 
+  labs(x = "Overall Condition of the House by Rating", y = 'Density') + ggtitle('Standard Distribution of Overall Condition') + theme(
+    legend.position = c(.95, .95),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right", plot.title = element_text(hjust = 0.5)
+    )
+```
+```{r}
+sd(Ames_Housing_Refined$OverallQual)
+```
+
+
+```{r}
+ggplot(Ames_Housing_Refined, aes(x=GarageArea, y=SalePrice)) + 
+  geom_point(color='black')+
+  geom_smooth(aes(color='red')) + scale_y_continuous(labels = scales::label_dollar(), breaks=seq(0, 800000, 160000)) + 
+  labs(x = "Size of Garage in Square Feet", y = 'Sale Price') + ggtitle('Sale Price Regression on Garage Area') + 
+  scale_color_manual(name = 'Pearson\'s\ R', 
+         values =c('red'='red'), labels = c('Cor=0.63
+p-value < 2.2e-16')) + theme(legend.position = c(0.2,.85), plot.title = element_text(hjust = 0.5)
+    )
+```
+```{r}
+ggplot(Ames_Housing_Refined, aes(x=BsmtUnfSF, y=SalePrice)) + 
+  geom_point(color='#4B0082')+
+  geom_smooth(aes(color='red')) + scale_y_continuous(labels = scales::label_dollar(), breaks=seq(0, 800000, 160000)) + 
+  labs(x = "Unfinished Square Feet of Basement Area", y = 'Sale Price') + ggtitle('Sale Price Regression on Unfinished Basement Area') + 
+  scale_color_manual(name = 'Pearson\'s\ R', 
+         values =c('red'='red'), labels = c('Cor=0.17
+p-value < 2.2e-16')) + theme(legend.position = c(.95, .95), legend.justification = c("right", "top"),
+    legend.box.just = "right", plot.title = element_text(hjust = 0.5)
+    )
+
+```
+
+```{r}
+ggplot(Ames_Housing_Refined, aes(x=LotFrontage, y=SalePrice)) + 
+   geom_point(color='#4B0082') +
+  geom_smooth(aes(color='red')) + scale_y_continuous(labels = scales::label_dollar(), breaks=seq(0, 800000, 160000)) + 
+  labs(x = "Linear Feet of Street Connected to Property", y = 'Sale Price') + ggtitle('Sale Price Regression on Street Connected to Property') + 
+  scale_color_manual(name = 'Pearson\'s\ R', 
+         values =c('red'='red'), labels = c('Cor=0.18
+p-value < 2.2e-16')) + theme(legend.position = c(.95, .95), legend.justification = c("right", "top"),
+    legend.box.just = "right", plot.title = element_text(hjust = 0.5)
+    )
+```
+```{r}
+ggplot(Ames_Housing_Refined, aes(x=LotArea, y=SalePrice)) + 
+   geom_point(color='#4B0082') +
+  geom_smooth(aes(color='red')) + scale_y_continuous(labels = scales::label_dollar(), breaks=seq(0, 800000, 160000)) + 
+  labs(x = "Lot Size in Square Feet", y = 'Sale Price') + ggtitle('Sale Price Regression on Lot Area') + 
+  scale_color_manual(name = 'Pearson\'s\ R', 
+         values =c('red'='red'), labels = c('Cor=0.27
+p-value < 2.2e-16')) + theme(legend.position = c(.95, .95), legend.justification = c("right", "top"),
+    legend.box.just = "right", plot.title = element_text(hjust = 0.5)
+    )
+```
+
+```{r}
+cor.test(Ames_Housing_Refined$LotArea, Ames_Housing_Refined$SalePrice, method = c("pearson"))
+
+sd(Ames_Housing_Refined$OverallQual)
+```
+
+
+```{r}
+library("psych")
+Ames_Housing_Refined = Ames_Housing_Refined %>% select(where(is.numeric))
+corr.test(Ames_Housing_Refined, Ames_Housing_Refined$SalePrice, method="pearson")
+```
+
 
