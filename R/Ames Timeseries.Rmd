@@ -45,12 +45,12 @@ ts <- Ames_TS %>%
     summarise(Total_Price = mean(SalePrice)) 
 
 ts$year <- as.Date(as.character(ts$year), format = "%Y")
-ts = xts(ts[,-1], order.by=as.Date(ts$year, format = "%Y%m%d"))
+#ts = xts(ts[,-1], order.by=as.Date(ts$year, format = "%Y%m%d"))
 
-log_ts = log(ts[,1]) #Non-stationary
+#log_ts = log(ts[,1]) #Non-stationary
 
-acf(log_ts)
-acf(log_ts, type = "partial")
+#acf(log_ts)
+#acf(log_ts, type = "partial")
 
 ```
 
@@ -85,5 +85,18 @@ axis(1, at = c(1, 14, 28, 42, 56, 70, 84, 98, 112, 126),
 legend("topleft", legend=c("Sale Price", "Forecast"),
        col=c("darkgreen", "blue"), lty=1, cex=1)
 mtext(side=3, line=.5, at=-0.07, adj=-1, cex=0.7, "As Expressed in Terms of Logarithms")
+```
+```{r}
+ggplot(ts, aes(x=year, y=Total_Price)) + 
+   geom_line(color='#4B0082') + scale_y_continuous(labels = scales::label_dollar(), breaks=seq(0, 320000, 64000)) + 
+  labs(x = "Original Construction Date", y = 'Sale Price (Average)') + ggtitle('Year Built Time Series Based on Sale Price') + geom_smooth(aes(color='red')) + 
+  scale_color_manual(name = 'Pearson\'s\ R', 
+         values =c('red'='red'), labels = c('Cor=0.54
+p-value < 2.2e-16')) + theme(legend.position = c(.65, .95), legend.justification = c("right", "top"),
+    legend.box.just = "right", plot.title = element_text(hjust = 0.5)
+    )
+```
+```{r}
+cor.test(Ames_Housing_Refined$YearBuilt, Ames_Housing_Refined$SalePrice, method = c("pearson"))
 ```
 

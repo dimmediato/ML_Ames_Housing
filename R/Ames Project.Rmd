@@ -127,7 +127,7 @@ Ames_Housing_Refined$TotalBath = as.numeric(Ames_Housing_Refined$TotalBath)
 ```{r}
 ggplot(Ames_Housing_Refined, aes(TotalBath, SalePrice)) +
   geom_point(color="steelblue") +
-  geom_smooth(method = lm, aes(color="red")) + scale_y_continuous(labels = scales::label_dollar(), breaks=seq(0, 800000, 160000)) + 
+  geom_smooth(aes(color="red")) + scale_y_continuous(labels = scales::label_dollar(), breaks=seq(0, 800000, 160000)) + 
   labs(x = "Total Number of Baths", y = 'Sale Price') + ggtitle('Sale Price Regression on Total Baths') + 
   scale_color_manual(name = 'Pearson\'s\ R', 
          values =c('red'='red'), labels = c('Cor=0.64
@@ -274,14 +274,32 @@ p-value < 2.2e-16')) + theme(legend.position = c(.95, .95), legend.justification
 ```{r}
 cor.test(Ames_Housing_Refined$LotArea, Ames_Housing_Refined$SalePrice, method = c("pearson"))
 
-sd(Ames_Housing_Refined$OverallQual)
+sd(Ames_Housing_Refined$OpenPorchSF)
 ```
 
 
 ```{r}
-library("psych")
-Ames_Housing_Refined = Ames_Housing_Refined %>% select(where(is.numeric))
-corr.test(Ames_Housing_Refined, Ames_Housing_Refined$SalePrice, method="pearson")
+ggplot(Ames_Housing_Refined, aes(x=TotRmsAbvGrd, y=SalePrice)) + 
+   geom_point(color='#4B0082') +
+  geom_smooth(aes(color='red')) + scale_y_continuous(labels = scales::label_dollar(), breaks=seq(0, 800000, 160000)) + 
+  labs(x = "Total Rooms Above Grade", y = 'Sale Price') + ggtitle('Sale Price Regression on Above Grade Total') + 
+  scale_color_manual(name = 'Pearson\'s\ R', 
+         values =c('red'='red'), labels = c('Cor=0.49
+p-value < 2.2e-16')) + theme(legend.position = c(.95, .95), legend.justification = c("right", "top"),
+    legend.box.just = "right", plot.title = element_text(hjust = 0.5)
+    )
 ```
+```{r}
+ggplot(Ames_Housing_Refined, aes(x=OpenPorchSF, y=SalePrice)) + 
+   geom_point(color='#4B0082') +
+  geom_smooth(aes(color='red')) + scale_y_continuous(labels = scales::label_dollar(), breaks=seq(0, 800000, 160000)) + 
+  labs(x = "Open Porch Area in Square Feet", y = 'Sale Price') + ggtitle('Sale Price Regression on Open Porch Area') + 
+  scale_color_manual(name = 'Pearson\'s\ R', 
+         values =c('red'='red'), labels = c('Cor=0.31
+p-value < 2.2e-16')) + theme(legend.position = c(.95, .95), legend.justification = c("right", "top"),
+    legend.box.just = "right", plot.title = element_text(hjust = 0.5)
+    )
+```
+
 
 
